@@ -3,7 +3,7 @@ var Chromosome = require('./chromosome.js');
 var Population = require('./population.js');
 
 // goal, population size, num chars to mutate
-var population = new Population('Aaron Sullivan wrote this algorithm.', 100, 2);
+var population = new Population('Aaron Sullivan wrote this algorithm.', 75, 10);
 population.initialize();
 
 
