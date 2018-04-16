@@ -1,79 +1,82 @@
-var _ = require('lodash');
-var Chromosome = require('./chromosome.js');
+const _ = require('lodash');
+const Chromosome = require('./chromosome.js');
 
-var Population = function (goal, populationSize, numMutationChars) {
-	this.members = [];
-	this.goal = goal;
-	this.populationSize = populationSize;
-	this.numMutationChars = numMutationChars;
-};
+class Population {
+  constructor(goal, populationSize, numMutationChars) {
+    this.members = [];
+    this.goal = goal;                         // to calculate cost against
+    this.populationSize = populationSize;     // how many members
+    this.numMutationChars = numMutationChars; // details about mutation
+  }
 
-Population.prototype.initialize = function () {
-	// generate the population
-	_(this.populationSize).times(function(i){
-		this.members.push(new Chromosome());
-	}, this);
+  initialize() {
+    // generate the population
+    _(this.populationSize).times(i => {
+      this.members.push(new Chromosome());
+    }, this);
 
-	// initialize the population
-	this.members.forEach(function(member){
-		member.randomizeCode(this.goal.length);
-	}, this);
-};
+    // initialize the population
+    this.members.forEach(member => {
+      member.randomizeCode(this.goal.length);
+    }, this);
+  }
 
-Population.prototype.sort = function(){
-	this.members = _.sortBy(this.members, function(member){
-		return member.calcCostAgainst(this.goal);
-	}, this);
-};
+  // sort by fitness function
+  sort() {
+    this.members = _.sortBy(this.members, member => {
+      return member.calcCostAgainst(this.goal);
+    }, this);
+  };
 
-Population.prototype.mateAll = function(){
-	var member1, member2;
+  // pair off from best fitness to worst, mate members
+  mateAll() {
+    let member1, member2;
 
-	for(var i = 0; i <= this.populationSize - 2; i += 2) {
-		member1 = this.members[i];
-		member2 = this.members[i+1];
-		this.members = this.members.concat(this._mate(member1, member2));
-	}
+    for(let i = 0; i <= this.populationSize - 2; i += 2) {
+      member1 = this.members[i];
+      member2 = this.members[i+1];
+      this.members = this.members.concat(this._mate(member1, member2));
+    }
 
-};
+  };
 
-Population.prototype.mutateAll = function(){
-	var that = this;
+  // mutate every member
+  mutateAll() {
+    this.members.forEach(member => {
+      member.mutate(this.numMutationChars);
+    })
+  };
 
-	this.members.forEach(function(member){
-		member.mutate(that.numMutationChars);
-	});
-};
+  // cut out all but top this.populationSize num members
+  cull() {
+    this.members = this.members.slice(0, this.populationSize);
+  };
 
-Population.prototype.mutateRandom = function(){
-	randomIndex = Math.floor(Math.random() * this.members.length)
+  // return most fit member with cost
+  bestGuess() {
+    const bestChromosome = this._bestChromosome();
+    return [bestChromosome.calcCostAgainst(this.goal), bestChromosome.code];
+  };
 
-	this.members[randomIndex].mutate(this.numMutationChars);
-};
+  // return most fit member
+  _bestChromosome() {
+    return this.members[0];
+  };
 
-Population.prototype.filter = function(){ // cut out all but top this.populationSize num members
-	this.members = this.members.slice(0, this.populationSize);
-};
+  // mate two members
+  _mate(chromo1, chromo2) {
+    const pivot = Math.floor(this.goal.length / 2);
 
-Population.prototype.bestGuess = function(){
-	return [this._bestChromosome().calcCostAgainst(this.goal), this._bestChromosome().code];
-};
+    const child1 = new Chromosome();
+    const child2 = new Chromosome();
 
-Population.prototype._bestChromosome = function(){
-	return this.members[0];
-};
-
-Population.prototype._mate = function (chromo1, chromo2) {
-	var pivot = Math.floor(this.goal.length / 2);
-
-	var child1 = new Chromosome();
-	var child2 = new Chromosome();
-
-	child1.code = chromo1.code.slice(0, pivot) + chromo2.code.slice(pivot);
-	child2.code = chromo2.code.slice(0, pivot) + chromo1.code.slice(pivot);
+    // mating algorithm
+    child1.code = chromo1.code.slice(0, pivot) + chromo2.code.slice(pivot);
+    child2.code = chromo2.code.slice(0, pivot) + chromo1.code.slice(pivot);
 
 
-	return [child1, child2];
-};
+    return [child1, child2];
+  };
+}
 
 module.exports = Population;

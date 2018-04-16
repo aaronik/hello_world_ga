@@ -1,21 +1,25 @@
-var _ = require('lodash');
-var Chromosome = require('./chromosome.js');
-var Population = require('./population.js');
+const _ = require('lodash');
+const Chromosome = require('./chromosome.js');
+const Population = require('./population.js');
 
 // goal, population size, num chars to mutate
-var population = new Population('Aaron Sullivan wrote this algorithm.', 75, 10);
+const population = new Population('Hello, Toptal!', 75, 4);
+
 population.initialize();
 
+for (let i = 0; true; i++) {
 
-_(100000).times(function(i){
   population.mateAll();
   population.sort();
-  population.filter();
-  if (i % 4 == 0) {
-    population.mutateAll();
-  }
-  console.log('app.js -- iteration ' + i + ' -- best guess: ', population.bestGuess());
-  if (population.bestGuess()[0] == 0) {
-    process.exit()
-  }
-})
+  population.cull();
+
+  // every once in a while introduce population-wide random mutation
+  if (i % 4 == 0) population.mutateAll();
+
+  const [ cost, bestGuess ] = population.bestGuess();
+
+  console.log(`iteration ${i}, best guess: "${bestGuess}" (cost: ${cost})`);
+
+  // if we've arrived at the desired result, exit the program
+  if (population.bestGuess()[0] == 0) process.exit();
+}

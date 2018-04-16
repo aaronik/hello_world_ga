@@ -1,45 +1,50 @@
-var _ = require('lodash');
+const _ = require('lodash');
 
-function Chromosome(){
-  this.code = '';
-  this.id = _.uniqueId();
-};
-
-Chromosome.prototype.randomizeCode = function(length){
-  while (length--){
-    this.code += this._randomChar();
+class Chromosome {
+  constructor() {
+    this.code = '';
   }
-};
 
-Chromosome.prototype.calcCostAgainst = function(goal){
-  var linearDiff, geneCost;
-  var totalCost = 0;
+  // replace chromosome's code with random chars of length `length`
+  randomizeCode(length) {
+    while (length--){
+      this.code += this._randomChar();
+    }
+  };
 
-  this.code.split('').forEach(function(char, i){
-    linearDiff = char.charCodeAt(0) - goal.charCodeAt(i);
-    geneCost = linearDiff * linearDiff;
-    totalCost += geneCost;
-  });
+  // calculate distance chromosome is from a given goal
+  calcCostAgainst(goal) {
+    let linearDiff, geneCost;
+    let totalCost = 0;
 
+    this.code.split('').forEach((char, i) => {
+      linearDiff = char.charCodeAt(0) - goal.charCodeAt(i);
+      geneCost = linearDiff * linearDiff;
+      totalCost += geneCost;
+    });
 
-  return totalCost;
-};
+    return totalCost;
+  };
 
-Chromosome.prototype.mutate = function(numChars){ // could add mutation degree
-  var randomIndex = Math.floor(Math.random() * this.code.length);
-  var randomChar = this._randomChar();
-  
-  _(numChars).times(function(){
-    this.code = this._swapChar(randomIndex, randomChar);
-  }, this);
-};
+  // `numChars` times, randomly replace a character from code
+  mutate(numChars) {
+    const randomIndex = Math.floor(Math.random() * this.code.length);
+    const randomChar = this._randomChar();
 
-Chromosome.prototype._swapChar = function(index, newChar){
-  return this.code.slice(0, index) + newChar + this.code.slice(index + 1);
-};
+    _(numChars).times(() => {
+      this.code = this._swapChar(randomIndex, randomChar);
+    }, this);
+  };
 
-Chromosome.prototype._randomChar = function(){
-  return String.fromCharCode(Math.floor(Math.random()*255));
-};
+  // replace whatever character is at `index` with `newChar`
+  _swapChar(index, newChar) {
+    return this.code.slice(0, index) + newChar + this.code.slice(index + 1);
+  };
+
+  // return a random character
+  _randomChar() {
+    return String.fromCharCode(Math.floor(Math.random()*255));
+  };
+}
 
 module.exports = Chromosome;
